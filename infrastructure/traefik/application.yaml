@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://traefik.github.io/charts
     chart: traefik
-    targetRevision: 37.4.0
+    targetRevision: 41.0.2
 
     helm:
       values: |
@@ -31,7 +31,7 @@ spec:
             exposedPort: 80
             hostPort: 80
             protocol: TCP
-        
+
           websecure:
             port: 8443
             exposedPort: 443
@@ -82,3 +82,4 @@ spec:
 
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
