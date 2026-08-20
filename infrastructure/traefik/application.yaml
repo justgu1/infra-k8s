@@ -20,39 +20,35 @@ spec:
         deployment:
           enabled: true
           replicas: 1
-
+        
         service:
           enabled: true
           type: ClusterIP
-
+        
         ingressClass:
           enabled: true
           isDefaultClass: true
-
+        
         providers:
           kubernetesCRD:
             enabled: true
             allowCrossNamespace: true
-
+        
           kubernetesIngress:
             enabled: true
-
-        logs:
-          general:
-            level: INFO
-
+        
         accessLog:
           enabled: true
-
+        
         api:
           dashboard: true
           insecure: false
-
+        
         persistence:
           enabled: true
           path: /data
           size: 1Gi
-
+        
         additionalArguments:
           - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
           - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
