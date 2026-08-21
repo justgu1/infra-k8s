@@ -6,3 +6,4 @@ resources:
   - metallb/config-application.yaml
   - sealed-secrets/application.yaml
   - traefik/application.yaml
+  - argocd/ingress.yaml
