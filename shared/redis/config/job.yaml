@@ -26,11 +26,12 @@ spec:
               for f in /acl-users/*; do
                 user=$(basename "$f")
                 pass=$(cat "$f")
-                if [ "$user" = "cube" ]; then
-                  pattern="~*"
-                else
-                  pattern="~${user}_*"
-                fi
+                # serviços que não suportam prefixo de chave nativamente (cube, medusa/tyershop)
+                # ficam sem restrição de keys; os demais só enxergam "<user>_*"
+                case "$user" in
+                  cube|tyershop) pattern="~*" ;;
+                  *) pattern="~${user}_*" ;;
+                esac
                 redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" \
                   ACL SETUSER "$user" on ">$pass" "$pattern" "&*" +@all -flushall -flushdb -config -shutdown
               done
