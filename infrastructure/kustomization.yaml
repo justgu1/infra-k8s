@@ -3,5 +3,6 @@ kind: Kustomization
 
 resources:
   - metallb/application.yaml
+  - metallb/config-application.yaml
   - sealed-secrets/application.yaml
   - traefik/application.yaml

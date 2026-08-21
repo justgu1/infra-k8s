@@ -24,7 +24,8 @@ spec:
 
         service:
           enabled: true
-          type: ClusterIP
+          spec:
+            type: LoadBalancer
 
         ingressClass:
           enabled: true

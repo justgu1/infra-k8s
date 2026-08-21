@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: metallb-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/justgu1/infra-k8s.git
+    targetRevision: main
+    path: infrastructure/metallb
+    directory:
+      exclude: "application.yaml,config-application.yaml"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infrastructure
+
+  # O Job (job.yaml) sobrescreve spec.addresses com o IP real, decriptado
+  # do SealedSecret. Sem isso o self-heal reverteria pro placeholder do git.
+  ignoreDifferences:
+    - group: metallb.io
+      kind: IPAddressPool
+      name: default-pool
+      namespace: infrastructure
+      jsonPointers:
+        - /spec/addresses
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

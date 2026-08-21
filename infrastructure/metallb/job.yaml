@@ -1,0 +1,40 @@
+# Hook PostSync: roda depois do sync normal, quando o sealed-secrets já
+# decriptou sealed-secret.yaml no Secret real "metallb-pool-address".
+# Pega o endereço do env (vindo do Secret) e sobrescreve o placeholder
+# do IPAddressPool. O Job fica pending até o Secret existir (mount de
+# secretRef inexistente = pod não sobe), então não precisa lógica de espera.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: metallb-pool-configure
+  namespace: infrastructure
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      serviceAccountName: metallb-pool-configurator
+      restartPolicy: OnFailure
+      containers:
+        - name: configure
+          image: bitnami/kubectl:1.31
+          envFrom:
+            - secretRef:
+                name: metallb-pool-address
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat <<EOF | kubectl apply -f -
+              apiVersion: metallb.io/v1beta1
+              kind: IPAddressPool
+              metadata:
+                name: default-pool
+                namespace: infrastructure
+              spec:
+                addresses:
+                  - $address
+              EOF
