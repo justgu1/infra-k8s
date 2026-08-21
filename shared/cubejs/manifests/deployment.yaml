@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cubejs
+  namespace: shared
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cubejs
+  template:
+    metadata:
+      labels:
+        app: cubejs
+    spec:
+      containers:
+        - name: cubejs
+          image: cubejs/cube:v1.6.29
+          ports:
+            - name: http
+              containerPort: 4000
+          env:
+            - name: CUBEJS_DEV_MODE
+              value: "false"
+            - name: CUBEJS_CONFIG_PATH
+              value: /cube/conf/cube.js
+
+            - name: CUBEJS_DEDICATED_DB_PROJECTS
+              value: ""
+
+            - name: CUBEJS_DB_TYPE
+              value: postgres
+            - name: CUBEJS_DB_HOST
+              value: postgresql.shared.svc.cluster.local
+            - name: CUBEJS_DB_PORT
+              value: "5432"
+            - name: CUBEJS_DB_NAME
+              value: app_shared
+            - name: CUBEJS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: username
+            - name: CUBEJS_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: password
+
+            - name: CUBEJS_CACHE_AND_QUEUE_DRIVER
+              value: redis
+            - name: CUBEJS_REDIS_URL
+              value: redis://redis-master.shared.svc.cluster.local:6379
+            - name: CUBEJS_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-acl-users
+                  key: cube
+
+            - name: CUBEJS_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cubejs-credentials
+                  key: api-secret
+
+          volumeMounts:
+            - name: config
+              mountPath: /cube/conf
+
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+
+      volumes:
+        - name: config
+          configMap:
+            name: cubejs-config

@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: minio
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  project: default
+
+  source:
+    # OCI, sem prefixo "oci://" (charts.bitnami.com clássico descontinuado)
+    repoURL: registry-1.docker.io/bitnamicharts
+    chart: minio
+    targetRevision: 17.0.23
+
+    helm:
+      values: |
+        # bitnami/* aponta pro catálogo pago desde set/2025
+        image:
+          repository: bitnamilegacy/minio
+        clientImage:
+          repository: bitnamilegacy/minio-client
+
+        mode: standalone
+
+        auth:
+          existingSecret: minio-credentials
+
+        persistence:
+          enabled: true
+          size: 20Gi
+
+        # 1 bucket + policy + user por projeto, isolado no próprio bucket
+        provisioning:
+          enabled: true
+
+          buckets: []
+            # - name: project-a
+            #   region: us-east-1
+            #   versioning: true
+
+          policies: []
+            # - name: project-a-rw
+            #   statements:
+            #     - resources:
+            #         - "arn:aws:s3:::project-a"
+            #         - "arn:aws:s3:::project-a/*"
+            #       actions:
+            #         - "s3:*"
+            #       effect: Allow
+
+          users: []
+            # - username: project-a
+            #   existingSecret: minio-project-a-credentials  # chave: password
+            #   disabled: false
+            #   policies:
+            #     - project-a-rw
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shared
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

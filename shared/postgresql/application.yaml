@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: postgresql
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  project: default
+
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    chart: postgresql
+    targetRevision: 17.1.0
+
+    helm:
+      values: |
+        image:
+          repository: bitnamilegacy/postgresql
+
+        auth:
+          existingSecret: postgresql-credentials
+          username: app
+          database: app_shared
+
+        primary:
+          persistence:
+            enabled: true
+            size: 20Gi
+
+          # Unificado: tabela com tenant_id + RLS (`USING (tenant_id = current_setting('app.tenant_id')::uuid)`),
+          # sessão faz `SET app.tenant_id` antes da query. Separado: `CREATE DATABASE project_x OWNER app;` sob demanda.
+          initdb:
+            scripts:
+              01-rls-role.sql: |
+                CREATE ROLE app_rw NOLOGIN NOSUPERUSER NOBYPASSRLS;
+                GRANT app_rw TO app;
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shared
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

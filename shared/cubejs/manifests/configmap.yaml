@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cubejs-config
+  namespace: shared
+data:
+  cube.js: |
+    // JWT sem claim "project" é rejeitado. contextToAppId/contextToOrchestratorId
+    // isolam cache, fila e chaves Redis por projeto. queryRewrite filtra tenant_id
+    // pro modelo unificado (RLS); banco dedicado vem de CUBEJS_DEDICATED_DB_PROJECTS.
+
+    module.exports = {
+      checkAuth: async (req, auth) => {
+        if (!auth || !auth.project) {
+          throw new Error('JWT sem claim "project" — obrigatório para isolamento multi-tenant.');
+        }
+        req.securityContext = auth;
+      },
+
+      contextToAppId: ({ securityContext }) => `CUBEJS_APP_${securityContext.project}`,
+      contextToOrchestratorId: ({ securityContext }) => `${securityContext.project}_cube`,
+
+      driverFactory: ({ securityContext }) => {
+        const dedicated = (process.env.CUBEJS_DEDICATED_DB_PROJECTS || '')
+          .split(',')
+          .map((p) => p.trim())
+          .filter(Boolean);
+
+        const database = dedicated.includes(securityContext.project)
+          ? securityContext.project
+          : process.env.CUBEJS_DB_NAME;
+
+        return {
+          type: 'postgres',
+          host: process.env.CUBEJS_DB_HOST,
+          port: process.env.CUBEJS_DB_PORT,
+          user: process.env.CUBEJS_DB_USER,
+          password: process.env.CUBEJS_DB_PASS,
+          database,
+        };
+      },
+
+      queryRewrite: (query, { securityContext }) => {
+        if (securityContext.tenant_id) {
+          query.filters = query.filters || [];
+          query.filters.push({
+            member: `${securityContext.project}.tenant_id`,
+            operator: 'equals',
+            values: [securityContext.tenant_id],
+          });
+        }
+        return query;
+      },
+    };
