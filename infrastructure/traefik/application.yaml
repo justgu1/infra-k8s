@@ -39,8 +39,18 @@ spec:
           kubernetesIngress:
             enabled: true
 
-        # postgres: TCP passthrough pro shared/postgresql, mesmo IP do LoadBalancer (sem gastar IP novo do MetalLB)
         ports:
+          # redirect nativo na entryPoint: não intercepta o challenge ACME
+          # (um Middleware por IngressRoute pega até o /.well-known/acme-challenge e quebra a emissão do cert)
+          web:
+            http:
+              redirections:
+                entryPoint:
+                  to: websecure
+                  scheme: https
+                  permanent: true
+
+          # postgres: TCP passthrough pro shared/postgresql, mesmo IP do LoadBalancer (sem gastar IP novo do MetalLB)
           postgres:
             port: 5432
             expose:
