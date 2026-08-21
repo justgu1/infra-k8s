@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-acl-configure
+  namespace: shared
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: configure
+          image: redis:7-alpine
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              ADMIN=$(cat /admin/redis-password)
+              until redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" ping >/dev/null 2>&1; do
+                sleep 2
+              done
+              for f in /acl-users/*; do
+                user=$(basename "$f")
+                pass=$(cat "$f")
+                if [ "$user" = "cube" ]; then
+                  pattern="~*"
+                else
+                  pattern="~${user}_*"
+                fi
+                redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" \
+                  ACL SETUSER "$user" on ">$pass" "$pattern" "&*" +@all -flushall -flushdb -config -shutdown
+              done
+              redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" ACL SAVE
+          volumeMounts:
+            - name: admin-pass
+              mountPath: /admin
+              readOnly: true
+            - name: acl-users
+              mountPath: /acl-users
+              readOnly: true
+      volumes:
+        - name: admin-pass
+          secret:
+            secretName: redis-credentials
+        - name: acl-users
+          secret:
+            secretName: redis-acl-users

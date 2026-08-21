@@ -26,26 +26,6 @@ spec:
           enabled: true
           existingSecret: redis-credentials
 
-          # 1 user ACL por projeto, keys pattern "<project>_*"; default sem keys pattern = sem acesso
-          acl:
-            enabled: true
-            userSecret: redis-acl-users
-            users:
-              # "default" já vem do chart (senha = auth.existingSecret); não duplicar aqui,
-              # senão o Redis recusa o aclfile (duplicate user).
-              # cube: serviço compartilhado, isolamento é por contextToOrchestratorId, não por keys pattern
-              - username: cube
-                enabled: "on"
-                commands: "+@all -flushall -flushdb -config -shutdown"
-                keys: "~*"
-                channels: "~*"
-              # - username: project-a
-              #   password: "$(PROJECT_A_REDIS_PASSWORD)"
-              #   enabled: "on"
-              #   commands: "+@all -flushall -flushdb -config -shutdown"
-              #   keys: "~project-a_*"
-              #   channels: "&project-a_*"
-
         persistence:
           enabled: true
           size: 8Gi

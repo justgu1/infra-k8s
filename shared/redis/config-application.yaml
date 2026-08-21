@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: redis-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+
+spec:
+  project: default
+
+  source:
+    # ACL via chart (auth.acl + userSecret) depende de `lookup()` do Helm, que não
+    # é confiável nos syncs do ArgoCD (resolvia senha vazia/nopass). Aplicado direto
+    # via redis-cli num Job PostSync, mesmo padrão do metallb-config.
+    repoURL: https://github.com/justgu1/infra-k8s.git
+    targetRevision: main
+    path: shared/redis/config
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shared
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
