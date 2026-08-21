@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: postgresql-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+
+spec:
+  project: default
+
+  source:
+    # cria role+database por app (separação de banco). Igual ao redis-config:
+    # roda direto via psql num Job PostSync, sem depender de lookup() do Helm.
+    repoURL: https://github.com/justgu1/infra-k8s.git
+    targetRevision: main
+    path: shared/postgresql/config
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shared
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
