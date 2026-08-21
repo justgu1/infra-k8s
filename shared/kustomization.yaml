@@ -1,8 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources: []
-  #- minio/application.yaml
-  #- postgresql/application.yaml
-  #- redis/application.yaml
-  #- cubejs/application.yaml
+resources:
+  - minio/application.yaml
+  - minio/sealed-secret.yaml
+  - postgresql/application.yaml
+  - postgresql/sealed-secret.yaml
+  - redis/application.yaml
+  - redis/sealed-secret-auth.yaml
+  - redis/sealed-secret-acl-users.yaml
+  - cubejs/application.yaml

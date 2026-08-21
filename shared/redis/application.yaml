@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: redis
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  project: default
+
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    chart: redis
+    targetRevision: 23.1.1
+
+    helm:
+      values: |
+        image:
+          repository: bitnamilegacy/redis
+
+        architecture: standalone
+
+        auth:
+          enabled: true
+          existingSecret: redis-credentials
+
+          # 1 user ACL por projeto, keys pattern "<project>_*"; default sem keys pattern = sem acesso
+          acl:
+            enabled: true
+            userSecret: redis-acl-users
+            users:
+              # cube: serviço compartilhado, isolamento é por contextToOrchestratorId, não por keys pattern
+              - username: cube
+                enabled: "on"
+                commands: "+@all -flushall -flushdb -config -shutdown"
+                keys: "~*"
+                channels: "~*"
+              # - username: default
+              #   password: ""
+              #   enabled: "on"
+              #   commands: "-@all +auth"
+              #   keys: ""
+              #   channels: ""
+              # - username: project-a
+              #   password: "$(PROJECT_A_REDIS_PASSWORD)"
+              #   enabled: "on"
+              #   commands: "+@all -flushall -flushdb -config -shutdown"
+              #   keys: "~project-a_*"
+              #   channels: "&project-a_*"
+
+        persistence:
+          enabled: true
+          size: 8Gi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shared
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
