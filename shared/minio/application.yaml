@@ -26,6 +26,10 @@ spec:
         console:
           image:
             repository: bitnamilegacy/minio-object-browser
+        defaultInitContainers:
+          volumePermissions:
+            image:
+              repository: bitnamilegacy/os-shell
 
         mode: standalone
 
