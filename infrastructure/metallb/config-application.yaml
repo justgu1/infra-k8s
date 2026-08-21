@@ -13,9 +13,7 @@ spec:
   source:
     repoURL: https://github.com/justgu1/infra-k8s.git
     targetRevision: main
-    path: infrastructure/metallb
-    directory:
-      exclude: "application.yaml,config-application.yaml"
+    path: infrastructure/metallb/config
 
   destination:
     server: https://kubernetes.default.svc

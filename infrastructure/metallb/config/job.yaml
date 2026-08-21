@@ -19,7 +19,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: configure
-          image: bitnami/kubectl:1.31
+          image: bitnami/kubectl:latest
           envFrom:
             - secretRef:
                 name: metallb-pool-address
