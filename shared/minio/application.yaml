@@ -23,6 +23,9 @@ spec:
           repository: bitnamilegacy/minio
         clientImage:
           repository: bitnamilegacy/minio-client
+        console:
+          image:
+            repository: bitnamilegacy/minio-object-browser
 
         mode: standalone
 
