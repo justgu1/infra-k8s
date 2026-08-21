@@ -9,4 +9,5 @@ resources:
   - redis/application.yaml
   - redis/sealed-secret-auth.yaml
   - redis/sealed-secret-acl-users.yaml
+  - redis/config-application.yaml
   - cubejs/application.yaml
