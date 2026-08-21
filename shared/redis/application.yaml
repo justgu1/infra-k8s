@@ -31,13 +31,8 @@ spec:
             enabled: true
             userSecret: redis-acl-users
             users:
-              # default precisa de entrada explícita c/ mesma senha do auth.existingSecret,
-              # senão o probe (autentica como default) quebra com WRONGPASS
-              - username: default
-                enabled: "on"
-                commands: "+@all"
-                keys: "~*"
-                channels: "~*"
+              # "default" já vem do chart (senha = auth.existingSecret); não duplicar aqui,
+              # senão o Redis recusa o aclfile (duplicate user).
               # cube: serviço compartilhado, isolamento é por contextToOrchestratorId, não por keys pattern
               - username: cube
                 enabled: "on"
