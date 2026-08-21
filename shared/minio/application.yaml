@@ -44,27 +44,37 @@ spec:
         provisioning:
           enabled: true
 
-          buckets: []
-            # - name: project-a
-            #   region: us-east-1
-            #   versioning: true
+          buckets:
+            - name: hericarealtor
+              region: us-east-1
+              versioning: false
+            - name: tyershop
+              region: us-east-1
+              versioning: false
 
-          policies: []
-            # - name: project-a-rw
-            #   statements:
-            #     - resources:
-            #         - "arn:aws:s3:::project-a"
-            #         - "arn:aws:s3:::project-a/*"
-            #       actions:
-            #         - "s3:*"
-            #       effect: Allow
+          policies:
+            - name: hericarealtor-rw
+              statements:
+                - resources:
+                    - "arn:aws:s3:::hericarealtor"
+                    - "arn:aws:s3:::hericarealtor/*"
+                  actions:
+                    - "s3:*"
+                  effect: Allow
+            - name: tyershop-rw
+              statements:
+                - resources:
+                    - "arn:aws:s3:::tyershop"
+                    - "arn:aws:s3:::tyershop/*"
+                  actions:
+                    - "s3:*"
+                  effect: Allow
 
           users: []
-            # - username: project-a
-            #   existingSecret: minio-project-a-credentials  # chave: password
-            #   disabled: false
-            #   policies:
-            #     - project-a-rw
+
+          # cada key é 1 usuário (username=/password=/policies=), formato exigido pelo chart
+          usersExistingSecrets:
+            - minio-app-users
 
   destination:
     server: https://kubernetes.default.svc
