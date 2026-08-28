@@ -1,0 +1,19 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: tyershop
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: tyershop
+      images:
+        - alias: backend
+          imageName: ghcr.io/justgu1/tyershop-backend:latest
+        - alias: frontend
+          imageName: ghcr.io/justgu1/tyershop-frontend:latest
+        - alias: api
+          imageName: ghcr.io/justgu1/tyershop-api:latest
+  commonUpdateSettings:
+    updateStrategy: digest
+  writeBackConfig:
+    method: argocd

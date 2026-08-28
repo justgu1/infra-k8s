@@ -1,0 +1,15 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: justgui-web
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: justgui-web
+      images:
+        - alias: app
+          imageName: ghcr.io/justgu1/justgui-web:latest
+  commonUpdateSettings:
+    updateStrategy: digest
+  writeBackConfig:
+    method: argocd

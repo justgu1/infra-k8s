@@ -1,0 +1,17 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: hericarealtor
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: hericarealtor
+      images:
+        - alias: app
+          imageName: ghcr.io/justgu1/hericarealtor:latest
+        - alias: listings
+          imageName: ghcr.io/justgu1/hericarealtor-listings-updater:latest
+  commonUpdateSettings:
+    updateStrategy: digest
+  writeBackConfig:
+    method: argocd
