@@ -18,11 +18,8 @@ spec:
     helm:
       values: |
         # Prometheus + Alertmanager + Grafana + kube-state-metrics + node-exporter
-        # storage local (StorageClass default do k3s: local-path) por enquanto;
-        # Longhorn/S3 lifecycle (ram<=7d, s3 7-90d, glacier>90d) fica pra fase 2
 
-        # k3s não expõe kube-scheduler/controller-manager/etcd/proxy nos ports
-        # padrão do kube-prometheus-stack — desabilita pra não ficar "down" sempre
+        # k3s não expõe kube-scheduler/controller-manager/etcd/proxy nos ports padrão
         kubeControllerManager:
           enabled: false
         kubeScheduler:
@@ -82,7 +79,7 @@ spec:
               memory: 128Mi
             limits:
               memory: 256Mi
-          # loki/tempo somam aqui além do datasource de prometheus que o chart já cria sozinho
+          # datasource de prometheus o chart já cria sozinho
           additionalDataSources:
             - name: Loki
               type: loki

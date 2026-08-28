@@ -17,7 +17,6 @@ spec:
 
     helm:
       values: |
-        # monolítico + disco local; storage S3 fica pra fase 2
         traces:
           otlp:
             grpc:
@@ -26,11 +25,35 @@ spec:
               enabled: true
 
         tempo:
-          retention: 168h # 7d, bate com o ram<=7d do diagrama
+          retention: 2160h # 90d
+
+        storage:
+          trace:
+            backend: s3
+            s3:
+              endpoint: minio.shared.svc.cluster.local:9000
+              bucket: tempo
+              region: us-east-1
+              access_key: ${AWS_ACCESS_KEY_ID}
+              secret_key: ${AWS_SECRET_ACCESS_KEY}
+              insecure: true
+              forcepathstyle: true
+
+        extraEnv:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: tempo-s3-credentials
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: tempo-s3-credentials
+                key: AWS_SECRET_ACCESS_KEY
 
         persistence:
           enabled: true
-          size: 10Gi
+          size: 2Gi
 
         resources:
           requests:

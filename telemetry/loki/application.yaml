@@ -17,8 +17,6 @@ spec:
 
     helm:
       values: |
-        # single binary + filesystem: storage S3 (nosso minio) fica pra fase 2
-        # junto com a política de retenção (ram<=7d / s3 7-90d / glacier>90d)
         deploymentMode: SingleBinary
 
         loki:
@@ -26,18 +24,27 @@ spec:
           commonConfig:
             replication_factor: 1
           storage:
-            type: filesystem
+            type: s3
+            bucketNames:
+              chunks: loki
+              ruler: loki
+              admin: loki
+            s3:
+              endpoint: minio.shared.svc.cluster.local:9000
+              region: us-east-1
+              s3ForcePathStyle: true
+              insecure: true
           schemaConfig:
             configs:
               - from: "2024-01-01"
                 store: tsdb
-                object_store: filesystem
+                object_store: s3
                 schema: v13
                 index:
                   prefix: loki_index_
                   period: 24h
           limits_config:
-            retention_period: 168h # 7d, bate com o ram<=7d do diagrama
+            retention_period: 2160h # 90d
 
         singleBinary:
           replicas: 1
@@ -50,9 +57,19 @@ spec:
               memory: 256Mi
             limits:
               memory: 512Mi
+          extraEnv:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: loki-s3-credentials
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-s3-credentials
+                  key: AWS_SECRET_ACCESS_KEY
 
-        # zera os componentes dos outros modos (scalable/distributed) — exigido
-        # pelo chart quando deploymentMode = SingleBinary
+        # zerados: exigido pelo chart quando deploymentMode = SingleBinary
         backend:
           replicas: 0
         read:
@@ -65,7 +82,6 @@ spec:
         resultsCache:
           enabled: false
 
-        # não precisamos do minio de teste embutido no chart, já temos o nosso
         minio:
           enabled: false
 
