@@ -14,3 +14,34 @@ spec:
           port: 9090
   tls:
     certResolver: letsencrypt
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: minio-cdn-strip
+  namespace: shared
+spec:
+  stripPrefix:
+    prefixes:
+      - /cdn
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  # bucket tyershop é público (download); reaproveita host existente do
+  # tyershop pra servir a imagem, sem precisar de subdomínio/DNS novo
+  name: minio-tyershop-cdn-tls
+  namespace: shared
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`api.homolog.tyershop.com`) && PathPrefix(`/cdn`)
+      kind: Rule
+      middlewares:
+        - name: minio-cdn-strip
+      services:
+        - name: minio
+          port: 9000
+  tls:
+    certResolver: letsencrypt
