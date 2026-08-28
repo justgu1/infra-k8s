@@ -86,9 +86,28 @@ spec:
               access: proxy
               url: http://loki-gateway.telemetry.svc.cluster.local
             - name: Tempo
-              type: tempo
+              # o service do tempo expõe o http de query na 3200 (3100 não existe)
               access: proxy
-              url: http://tempo.telemetry.svc.cluster.local:3100
+              url: http://tempo.telemetry.svc.cluster.local:3200
+
+          # link do email de reset aponta pro dominio publico
+          grafana.ini:
+            server:
+              root_url: https://grafana.justgui.dev
+            smtp:
+              enabled: true
+              host: smtp.hostinger.com:465
+              user: support@justgui.dev
+              from_address: support@justgui.dev
+              from_name: Grafana
+
+          # senha SMTP fora do ConfigMap (vem do secret selado)
+          env:
+            - name: GF_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-smtp-credentials
+                  key: password
 
         prometheusOperator:
           resources:
