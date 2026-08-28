@@ -1,0 +1,17 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: party-manager
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: party-manager
+      images:
+        - alias: api
+          imageName: ghcr.io/justgu1/party-manager-api:latest
+        - alias: worker
+          imageName: ghcr.io/justgu1/party-manager-worker:latest
+  commonUpdateSettings:
+    updateStrategy: digest
+  writeBackConfig:
+    method: argocd
