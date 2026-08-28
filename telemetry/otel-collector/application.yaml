@@ -5,7 +5,7 @@ metadata:
   name: otel-collector
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
 
 spec:
   project: default
@@ -68,8 +68,8 @@ spec:
                 insecure: true
             prometheusremotewrite:
               endpoint: http://kube-prometheus-stack-prometheus.telemetry.svc.cluster.local:9090/api/v1/write
-            loki:
-              endpoint: http://loki-gateway.telemetry.svc.cluster.local/loki/api/v1/push
+            otlphttp/loki:
+              endpoint: http://loki-gateway.telemetry.svc.cluster.local/otlp
 
           service:
             pipelines:
@@ -84,7 +84,7 @@ spec:
               logs:
                 receivers: [otlp]
                 processors: [memory_limiter, batch]
-                exporters: [loki]
+                exporters: [otlphttp/loki]
 
   destination:
     server: https://kubernetes.default.svc
