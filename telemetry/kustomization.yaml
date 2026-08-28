@@ -1,11 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources: []
-  #- prometheus/application.yaml
-  #- grafana/application.yaml
-  #- loki/application.yaml
-  #- tempo/application.yaml
-  #- opentelemetry/application.yaml
-  #- alertmanager/application.yaml
-  #- pyroscope/application.yaml
+resources:
+  - kube-prometheus-stack/application.yaml
+  - kube-prometheus-stack/sealed-secret-grafana.yaml
+  - loki/application.yaml
+  - tempo/application.yaml
+  - otel-collector/application.yaml
+  - grafana-ingressroute.yaml
+  # pyroscope (profiling) e lifecycle S3 (7d->90d) / Glacier Flexible (>90d) ficam pra fase 2

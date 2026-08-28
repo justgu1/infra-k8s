@@ -1,0 +1,102 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: loki
+    targetRevision: 7.3.0
+
+    helm:
+      values: |
+        # single binary + filesystem: storage S3 (nosso minio) fica pra fase 2
+        # junto com a política de retenção (ram<=7d / s3 7-90d / glacier>90d)
+        deploymentMode: SingleBinary
+
+        loki:
+          auth_enabled: false
+          commonConfig:
+            replication_factor: 1
+          storage:
+            type: filesystem
+          schemaConfig:
+            configs:
+              - from: "2024-01-01"
+                store: tsdb
+                object_store: filesystem
+                schema: v13
+                index:
+                  prefix: loki_index_
+                  period: 24h
+          limits_config:
+            retention_period: 168h # 7d, bate com o ram<=7d do diagrama
+
+        singleBinary:
+          replicas: 1
+          persistence:
+            enabled: true
+            size: 10Gi
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+
+        # zera os componentes dos outros modos (scalable/distributed) — exigido
+        # pelo chart quando deploymentMode = SingleBinary
+        backend:
+          replicas: 0
+        read:
+          replicas: 0
+        write:
+          replicas: 0
+
+        chunksCache:
+          enabled: false
+        resultsCache:
+          enabled: false
+
+        # não precisamos do minio de teste embutido no chart, já temos o nosso
+        minio:
+          enabled: false
+
+        monitoring:
+          serviceMonitor:
+            enabled: true
+          selfMonitoring:
+            enabled: false
+          lokiCanary:
+            enabled: false
+
+        test:
+          enabled: false
+
+        gateway:
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: telemetry
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
