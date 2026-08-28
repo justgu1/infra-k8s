@@ -58,8 +58,20 @@ spec:
             exposedPort: 5432
             protocol: TCP
 
+          # ingestão OTLP/gRPC externa (otel.justgui.dev:4317), TLS terminado aqui
+          otlpgrpc:
+            port: 4317
+            expose:
+              default: true
+            exposedPort: 4317
+            protocol: TCP
+
         accessLog:
           enabled: true
+
+        # basicAuth das UIs de telemetria (prometheus, alertmanager) é Middleware
+        # CRD do traefik (telemetry/telemetry-basicauth.yaml), lido direto do
+        # Secret via API — não precisa montar volume no pod do traefik.
 
         api:
           dashboard: true

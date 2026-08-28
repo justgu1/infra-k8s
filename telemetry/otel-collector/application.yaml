@@ -45,7 +45,19 @@ spec:
           zipkin:
             enabled: false
 
+        # token de ingestão (otlp externo precisa de Authorization: Bearer)
+        extraEnvs:
+          - name: OTEL_INGEST_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: otel-auth
+                key: token
+
         config:
+          extensions:
+            bearertokenauth:
+              token: ${env:OTEL_INGEST_TOKEN}
+
           receivers:
             otlp:
               protocols:
@@ -53,6 +65,8 @@ spec:
                   endpoint: 0.0.0.0:4317
                 http:
                   endpoint: 0.0.0.0:4318
+              auth:
+                authenticator: bearertokenauth
 
           processors:
             batch: {}
@@ -72,6 +86,8 @@ spec:
               endpoint: http://loki-gateway.telemetry.svc.cluster.local/otlp
 
           service:
+            # health_check É obrigatório manter (probes 13133); listas substituem, não mergeam
+            extensions: [health_check, bearertokenauth]
             pipelines:
               traces:
                 receivers: [otlp]

@@ -1,0 +1,40 @@
+# Endpoint externo de ingestão OTLP: https://otel.justgui.dev
+# - gRPC (SDKs com OTEL_EXPORTER_OTLP_PROTOCOL=grpc): otel.justgui.dev:4317
+#   (entrypoint dedicado do traefik, TLS terminado com letsencrypt)
+# - HTTP (protobuffer/json): https://otel.justgui.dev (443, websecure)
+# Autenticação: header Authorization: Bearer <token> (secret otel-auth),
+# validada pelo bearertokenauth no próprio collector — nada entra sem token.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: otel-grpc
+  namespace: telemetry
+spec:
+  entryPoints:
+    - otlpgrpc
+  routes:
+    - match: HostSNI(`otel.justgui.dev`)
+      services:
+        - name: otel-collector-opentelemetry-collector
+          port: 4317
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: otel.justgui.dev
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: otel-http
+  namespace: telemetry
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`otel.justgui.dev`)
+      kind: Rule
+      services:
+        - name: otel-collector-opentelemetry-collector
+          port: 4318
+  tls:
+    certResolver: letsencrypt

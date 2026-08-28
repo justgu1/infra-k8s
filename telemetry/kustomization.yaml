@@ -4,10 +4,15 @@ kind: Kustomization
 resources:
   - kube-prometheus-stack/application.yaml
   - kube-prometheus-stack/sealed-secret-grafana.yaml
+  - kube-prometheus-stack/sealed-secret-smtp.yaml
   - loki/application.yaml
   - loki/sealed-secret-s3.yaml
   - tempo/application.yaml
   - tempo/sealed-secret-s3.yaml
   - otel-collector/application.yaml
+  - otel-collector/sealed-secret-auth.yaml
+  - otel-collector/ingressroute.yaml
   - grafana-ingressroute.yaml
+  - sealed-secret-infra-basicauth.yaml
+  - telemetry-basicauth-ingressroutes.yaml
   # pyroscope (profiling) e o tier frio (aws s3 + glacier, >90d) ficam pra fase 2
