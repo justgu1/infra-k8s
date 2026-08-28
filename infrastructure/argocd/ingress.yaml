@@ -16,7 +16,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`argo.justgui.dev`)
+    - match: Host(`argocd.justgui.dev`)
       kind: Rule
       services:
         - name: argocd-server
