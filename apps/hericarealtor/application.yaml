@@ -6,6 +6,9 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    argocd-image-updater.argoproj.io/image-list: app=ghcr.io/justgu1/hericarealtor,listings=ghcr.io/justgu1/hericarealtor-listings-updater
+    argocd-image-updater.argoproj.io/app.update-strategy: digest
+    argocd-image-updater.argoproj.io/listings.update-strategy: digest
 
 spec:
   project: default

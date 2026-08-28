@@ -6,6 +6,9 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/justgu1/party-manager-api,worker=ghcr.io/justgu1/party-manager-worker
+    argocd-image-updater.argoproj.io/api.update-strategy: digest
+    argocd-image-updater.argoproj.io/worker.update-strategy: digest
 
 spec:
   project: default
