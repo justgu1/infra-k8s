@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: tempo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: tempo
+    targetRevision: 1.24.4
+
+    helm:
+      values: |
+        traces:
+          otlp:
+            grpc:
+              enabled: true
+            http:
+              enabled: true
+
+        tempo:
+          retention: 2160h # 90d
+
+        storage:
+          trace:
+            backend: s3
+            s3:
+              endpoint: minio.shared.svc.cluster.local:9000
+              bucket: tempo
+              region: us-east-1
+              access_key: ${AWS_ACCESS_KEY_ID}
+              secret_key: ${AWS_SECRET_ACCESS_KEY}
+              insecure: true
+              forcepathstyle: true
+
+        extraEnv:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: tempo-s3-credentials
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: tempo-s3-credentials
+                key: AWS_SECRET_ACCESS_KEY
+
+        persistence:
+          enabled: true
+          size: 2Gi
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+
+        serviceMonitor:
+          enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: telemetry
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
