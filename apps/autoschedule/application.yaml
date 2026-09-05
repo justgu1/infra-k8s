@@ -16,7 +16,7 @@ spec:
   source:
     repoURL: https://github.com/justgu1/AutoSchedule.git
     targetRevision: main
-    path: k8s
+    path: infra/k8s
 
   destination:
     server: https://kubernetes.default.svc
