@@ -6,3 +6,4 @@ resources:
   - tyershop/application.yaml
   - party-manager/application.yaml
   - justgui-web/application.yaml
+  - autoschedule/application.yaml
