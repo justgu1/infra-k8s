@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: autoschedule
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd-image-updater.argoproj.io/image-list: backend=ghcr.io/justgu1/autoschedule-backend,frontend=ghcr.io/justgu1/autoschedule-nginx
+    argocd-image-updater.argoproj.io/backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/justgu1/AutoSchedule.git
+    targetRevision: main
+    path: k8s
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
