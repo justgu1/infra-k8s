@@ -12,3 +12,4 @@ resources:
   - argocd-image-updater/instances/hericarealtor.yaml
   - argocd-image-updater/instances/party-manager.yaml
   - argocd-image-updater/instances/justgui-web.yaml
+  - argocd-image-updater/instances/autoschedule.yaml
