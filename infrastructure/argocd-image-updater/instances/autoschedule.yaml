@@ -1,0 +1,17 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: autoschedule
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: autoschedule
+      images:
+        - alias: backend
+          imageName: ghcr.io/justgu1/autoschedule-backend:latest
+        - alias: frontend
+          imageName: ghcr.io/justgu1/autoschedule-nginx:latest
+  commonUpdateSettings:
+    updateStrategy: digest
+  writeBackConfig:
+    method: argocd
