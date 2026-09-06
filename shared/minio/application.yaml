@@ -57,6 +57,9 @@ spec:
             - name: tempo
               region: us-east-1
               versioning: false
+            - name: autoschedule
+              region: us-east-1
+              versioning: false
 
           policies:
             - name: hericarealtor-rw
@@ -88,6 +91,14 @@ spec:
                 - resources:
                     - "arn:aws:s3:::tempo"
                     - "arn:aws:s3:::tempo/*"
+                  actions:
+                    - "s3:*"
+                  effect: Allow
+            - name: autoschedule-rw
+              statements:
+                - resources:
+                    - "arn:aws:s3:::autoschedule"
+                    - "arn:aws:s3:::autoschedule/*"
                   actions:
                     - "s3:*"
                   effect: Allow
