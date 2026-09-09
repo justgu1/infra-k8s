@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-anonymous-download
+  namespace: shared
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: configure
+          image: bitnamilegacy/minio-client
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: root-user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: root-password
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              until mc alias set local http://minio.shared.svc.cluster.local:9000 \
+                "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null 2>&1; do
+                sleep 2
+              done
+              # buckets servidos direto via IngressRoute (/cdn) sem passar pelo app --
+              # sem policy de download anônimo, o browser recebe 403 no <link>/<img>.
+              for bucket in autoschedule; do
+                mc anonymous set download "local/${bucket}"
+              done
