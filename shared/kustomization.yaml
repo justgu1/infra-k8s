@@ -6,6 +6,7 @@ resources:
   - minio/sealed-secret.yaml
   - minio/ingressroute.yaml
   - minio/sealed-secret-app-users.yaml
+  - minio/config-application.yaml
   - postgresql/application.yaml
   - postgresql/sealed-secret.yaml
   - postgresql/sealed-secret-app-passwords.yaml
