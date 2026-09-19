@@ -7,3 +7,4 @@ resources:
   - party-manager/application.yaml
   - justgui-web/application.yaml
   - autoschedule/application.yaml
+  - sleepplususa/application.yaml
