@@ -26,6 +26,10 @@ spec:
           enabled: true
           spec:
             type: LoadBalancer
+            # Local evita o SNAT do kube-proxy: sem isso o X-Forwarded-For chega
+            # como IP interno do cluster e todo visitante parece o mesmo IP
+            # (um ban por IP nas apps derruba o site pra todo mundo).
+            externalTrafficPolicy: Local
 
         ingressClass:
           enabled: true
