@@ -29,7 +29,7 @@ spec:
                 # serviços que não suportam prefixo de chave nativamente (cube, medusa/tyershop)
                 # ficam sem restrição de keys; os demais só enxergam "<user>_*"
                 case "$user" in
-                  cube|tyershop) pattern="~*" ;;
+                  cube|tyershop|tyershop-prod) pattern="~*" ;;
                   *) pattern="~${user}_*" ;;
                 esac
                 redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" \

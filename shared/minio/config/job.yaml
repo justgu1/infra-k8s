@@ -36,6 +36,6 @@ spec:
               done
               # buckets servidos direto via IngressRoute (/cdn) sem passar pelo app --
               # sem policy de download anônimo, o browser recebe 403 no <link>/<img>.
-              for bucket in autoschedule; do
+              for bucket in autoschedule tyershop-prod; do
                 mc anonymous set download "local/${bucket}"
               done

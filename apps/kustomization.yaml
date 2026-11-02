@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - hericarealtor/application.yaml
   - tyershop/application.yaml
+  - tyershop-prod/application.yaml
   - party-manager/application.yaml
   - justgui-web/application.yaml
   - autoschedule/application.yaml

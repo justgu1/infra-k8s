@@ -43,6 +43,13 @@ spec:
       services:
         - name: minio
           port: 9000
+    - match: Host(`api.tyershop.com`) && PathPrefix(`/cdn`)
+      kind: Rule
+      middlewares:
+        - name: minio-cdn-strip
+      services:
+        - name: minio
+          port: 9000
   tls:
     certResolver: letsencrypt
 ---
