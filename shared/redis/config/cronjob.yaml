@@ -1,0 +1,60 @@
+# Recria os usuários de ACL do Redis a cada poucos minutos. O Job PostSync (job.yaml) só roda quando o ArgoCD sincroniza;
+# se o Redis reiniciar sem sincronização, os usuários por app (tyershop, autoschedule, hericarealtor, cube) somem
+# (o ACL não é gravado em arquivo) e todos os apps tomam WRONGPASS até a próxima sincronização.
+# ACL SETUSER é idempotente: rodar de novo não muda nada se já estiver certo.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-acl-heal
+  namespace: shared
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: configure
+              image: redis:7-alpine
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  ADMIN=$(cat /admin/redis-password)
+                  until redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" ping >/dev/null 2>&1; do
+                    sleep 2
+                  done
+                  for f in /acl-users/*; do
+                    user=$(basename "$f")
+                    pass=$(cat "$f")
+                    # serviços que não suportam prefixo de chave nativamente (cube, medusa/tyershop)
+                    # ficam sem restrição de keys; os demais só enxergam "<user>_*"
+                    case "$user" in
+                      cube|tyershop) pattern="~*" ;;
+                      *) pattern="~${user}_*" ;;
+                    esac
+                    redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" \
+                      ACL SETUSER "$user" on ">$pass" "$pattern" "&*" +@all -flushall -flushdb -config -shutdown
+                  done
+                  redis-cli -h redis-master.shared.svc.cluster.local -a "$ADMIN" ACL SAVE
+              volumeMounts:
+                - name: admin-pass
+                  mountPath: /admin
+                  readOnly: true
+                - name: acl-users
+                  mountPath: /acl-users
+                  readOnly: true
+          volumes:
+            - name: admin-pass
+              secret:
+                secretName: redis-credentials
+            - name: acl-users
+              secret:
+                secretName: redis-acl-users
