@@ -51,6 +51,9 @@ spec:
             - name: tyershop
               region: us-east-1
               versioning: false
+            - name: tyershop-prod
+              region: us-east-1
+              versioning: false
             - name: loki
               region: us-east-1
               versioning: false
@@ -75,6 +78,14 @@ spec:
                 - resources:
                     - "arn:aws:s3:::tyershop"
                     - "arn:aws:s3:::tyershop/*"
+                  actions:
+                    - "s3:*"
+                  effect: Allow
+            - name: tyershop-prod-rw
+              statements:
+                - resources:
+                    - "arn:aws:s3:::tyershop-prod"
+                    - "arn:aws:s3:::tyershop-prod/*"
                   actions:
                     - "s3:*"
                   effect: Allow
