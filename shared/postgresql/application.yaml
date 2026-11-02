@@ -30,6 +30,24 @@ spec:
             enabled: true
             size: 20Gi
 
+          # O preset padrão do chart ("nano": 150m de CPU e 192Mi de memória) é pequeno demais para um banco compartilhado:
+          # com poucas dezenas de conexões ativas o contêiner estoura a memória (OOMKilled), reinicia em loop e derruba
+          # todos os apps ao mesmo tempo; com a CPU limitada a 150m, qualquer pico vira fila de conexões.
+          resourcesPreset: none
+          resources:
+            requests:
+              cpu: 250m
+              memory: 768Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+
+          # shared_buffers acompanha a memória nova (o padrão de 128MB não cabia nos 192Mi anteriores).
+          extendedConfiguration: |
+            shared_buffers = 256MB
+            max_connections = 150
+            work_mem = 4MB
+
           # Unificado: tabela com tenant_id + RLS (`USING (tenant_id = current_setting('app.tenant_id')::uuid)`),
           # sessão faz `SET app.tenant_id` antes da query. Separado: `CREATE DATABASE project_x OWNER app;` sob demanda.
           initdb:
