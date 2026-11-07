@@ -9,6 +9,7 @@ resources:
   - loki/sealed-secret-s3.yaml
   - tempo/application.yaml
   - tempo/sealed-secret-s3.yaml
+  - alloy/application.yaml
   - otel-collector/application.yaml
   - otel-collector/sealed-secret-auth.yaml
   - otel-collector/ingressroute.yaml
